@@ -495,6 +495,26 @@ document.addEventListener('DOMContentLoaded', () => {
         alert("Thanks! We'll be in touch shortly.");
       });
     }
+
+    // If using FormSubmit with CAPTCHA, ensure `_next` is an absolute URL
+    // so the service can redirect back to this site after verification.
+    if (/^https?:\/\/[^\s]*formsubmit\.co/i.test(action)) {
+      // Enforce POST at runtime as a safeguard
+      if ((form.getAttribute('method') || '').toUpperCase() !== 'POST') {
+        form.setAttribute('method', 'POST');
+      }
+
+      const nextInput = form.querySelector('input[name="_next"]');
+      if (nextInput) {
+        try {
+          // Only convert if running under http(s); file:// cannot be redirected to
+          if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+            const absolute = new URL(nextInput.value || 'success.html', window.location.href).toString();
+            nextInput.value = absolute;
+          }
+        } catch { /* noop */ }
+      }
+    }
   });
 
   /* --------------------------
